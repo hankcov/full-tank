@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>carassistant · demo</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:#F2F2ED;color:#1A1A18;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:32px 16px;gap:20px;min-height:100vh;
+  }
+  .stage-label{font-size:12px;color:#9A9A90;letter-spacing:1.5px}
+
+  .phone{
+    width:390px;height:844px;background:#fff;border-radius:44px;position:relative;
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 24px 60px rgba(30,30,20,.10),0 2px 8px rgba(30,30,20,.04);
+    border:1px solid #E8E8E0;
+  }
+
+  .statusbar{
+    height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;font-size:13px;font-weight:500;
+  }
+  .statusbar .right{display:flex;align-items:center;gap:6px}
+  .bars{display:flex;align-items:flex-end;gap:2px;height:10px}
+  .bars i{width:3px;background:#1A1A18;border-radius:1px;display:block}
+  .bars i:nth-child(1){height:3px}.bars i:nth-child(2){height:5px}
+  .bars i:nth-child(3){height:7px}.bars i:nth-child(4){height:10px}
+  .batt{width:22px;height:11px;border:1px solid #1A1A18;border-radius:3px;position:relative;opacity:.85}
+  .batt::after{content:"";position:absolute;inset:1.5px;background:#1A1A18;border-radius:1px;width:70%}
+  .batt::before{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#1A1A18;border-radius:0 1px 1px 0}
+
+  .viewport{flex:1;position:relative;overflow:hidden}
+  .page{
+    position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+    padding:0 24px 96px;scrollbar-width:none;
+    opacity:0;pointer-events:none;transition:opacity .18s ease;
+  }
+  .page::-webkit-scrollbar{display:none}
+  .page.active{opacity:1;pointer-events:auto}
+
+  /* ---------- home ---------- */
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;padding:12px 0 0}
+  .carname{font-size:14px;font-weight:500}
+  .carplate{font-size:12px;color:#8C8C82;margin-top:3px;letter-spacing:.5px}
+  .fuelline{
+    display:inline-flex;align-items:center;gap:5px;margin-top:7px;
+    font-size:11px;color:#0F6E56;background:#E9F5F0;border-radius:6px;
+    padding:3px 7px;cursor:pointer;letter-spacing:.2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .fuelline .arw{font-size:12px;opacity:.65;line-height:1;margin-top:-1px}
+  .today{font-size:12px;color:#8C8C82}
+
+  .hero{padding:26px 0 2px}
+  .hero .label{font-size:12px;color:#8C8C82;letter-spacing:1.2px;margin-bottom:8px}
+  .hero .num{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+  .hero .num b{font-size:56px;font-weight:300;letter-spacing:-2px;line-height:1}
+  .hero .num span{font-size:13px;color:#8C8C82}
+  .delta{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:13px}
+  .delta.down{color:#0F6E56}
+  .delta.up{color:#B06A12}
+  .delta small{color:#8C8C82;font-size:12px}
+
+  .card{
+    background:#FAFAF6;border:1px solid #EBEBE3;border-radius:16px;
+    padding:14px 18px;margin-top:20px;
+  }
+  .card .ctitle{font-size:12px;color:#8C8C82;letter-spacing:1px;margin-bottom:12px}
+  .trio{display:flex}
+  .trio div{flex:1}
+  .trio div+div{border-left:1px solid #EBEBE3;padding-left:16px}
+  .trio em{display:block;font-style:normal;font-size:11px;color:#A5A59A;margin-bottom:6px}
+  .trio strong{font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+  .trio strong u{text-decoration:none;font-size:12px;color:#8C8C82;font-weight:400;margin-left:2px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .gcell{background:#F5F5EF;border-radius:13px;padding:12px 14px}
+  .gcell em{display:block;font-style:normal;font-size:11px;color:#A5A59A;margin-bottom:6px}
+  .gcell strong{font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+  .gcell strong u{text-decoration:none;font-size:11px;color:#8C8C82;font-weight:400;margin-left:2px}
+
+.advice{display:flex;gap:10px;margin-top:12px}
+.adv{flex:1;border-radius:13px;padding:12px 14px;border:1px solid transparent}
+  .adv.ok{background:#E9F5F0;border-color:#CFE7DE}
+  .adv .ah{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.5px;margin-bottom:8px}
+  .adv.ok .ah{color:#0F6E56}
+  .adv .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:block}
+  /* 主数字：用户真正要的那个数。续航退到小字里，它只是这个数的来处 */
+  .adv strong{display:block;font-size:26px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.8px}
+  .adv strong u{text-decoration:none;font-size:12px;font-weight:400;color:#8C8C82;margin-left:3px;letter-spacing:0}
+  .adv small{display:block;font-size:11px;color:#8C8C82;margin-top:6px;line-height:1.45}
+
+  .fold{margin-top:12px;border-top:1px solid #F0F0E8}
+  .foldbtn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    background:none;border:none;font-family:inherit;padding:15px 0 12px;cursor:pointer;
+    font-size:13px;color:#1A1A18;
+  }
+  .foldbtn .l{display:flex;align-items:center;gap:8px;font-weight:500}
+  .foldbtn .l i{font-style:normal;font-size:11px;color:#A5A59A;font-weight:400}
+  .chev{width:7px;height:7px;border-right:1.5px solid #A5A59A;border-bottom:1.5px solid #A5A59A;
+    transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+  .fold.open .chev{transform:rotate(-135deg) translateY(-2px)}
+  .foldbody{max-height:0;overflow:hidden;transition:max-height .26s ease}
+  .fold.open .foldbody{max-height:560px}
+  .chartwrap{padding:2px 0 8px}
+  .chartsvg{display:block;width:100%}
+  .chartfoot{display:flex;justify-content:space-between;font-size:11px;color:#A5A59A;margin-top:4px;font-variant-numeric:tabular-nums}
+
+  .hint{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:12px;color:#8C8C82}
+  .hint i{width:5px;height:5px;border-radius:50%;background:#C9C9BC;display:block}
+
+  /* ---------- list ---------- */
+  .listhead{padding:12px 0 0}
+  .lhtop{display:flex;align-items:center;justify-content:space-between}
+  .listhead h1{font-size:22px;font-weight:500;letter-spacing:-.3px}
+  .listhead p{font-size:12px;color:#8C8C82;margin-top:6px}
+  .morewrap{position:relative;margin-right:-6px}
+  .morebtn{width:32px;height:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;background:none;border:none;border-radius:9px;cursor:pointer;padding:0;
+    -webkit-tap-highlight-color:transparent}
+  .morebtn i{width:3.5px;height:3.5px;border-radius:50%;background:#A5A59A;display:block}
+  .morebtn:active{background:#EFEFE7}
+  .moremenu{position:absolute;right:0;top:36px;min-width:126px;padding:5px;z-index:30;
+    background:#fff;border:1px solid #EDEDE4;border-radius:12px;
+    box-shadow:0 10px 26px rgba(20,24,28,.12);display:none}
+  .moremenu.on{display:block}
+  .moremenu button,.moremenu label{display:block;width:100%;padding:9px 11px;font-family:inherit;
+    font-size:13px;color:#1A1A18;text-align:left;background:none;border:none;border-radius:8px;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+  .moremenu button:active,.moremenu label:active{background:#F4F4EF}
+  .opmsg{margin-top:9px;font-size:11.5px;line-height:1.6;display:none}
+  .opmsg.on{display:block}
+  .opmsg.ok{color:#0F6E56}
+  .opmsg.warn{color:#A5711A}
+  .rows{margin-top:16px}
+  .row{display:flex;align-items:flex-start;justify-content:space-between;padding:15px 0;border-bottom:1px solid #F0F0E8}
+  .row:last-child{border-bottom:none}
+  .row .l .d{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
+  .row .l .m{font-size:12px;color:#8C8C82;margin-top:5px;font-variant-numeric:tabular-nums}
+  .row .r{text-align:right;font-variant-numeric:tabular-nums}
+  .row .r b{font-size:16px;font-weight:500}
+  .row .r b.muted{color:#A5A59A;font-weight:400;font-size:12px}
+  .row .r b.sus{color:#A5711A;font-weight:500;font-size:13px}
+  .row .r span{display:block;font-size:11px;color:#A5A59A;margin-top:5px}
+  .row .r span.sus{color:#A5711A}
+  .tag{display:inline-block;font-size:10px;color:#B06A12;background:#FAEEDA;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:1px}
+  .est{
+    display:inline-block;font-size:9px;color:#A5A59A;
+    border:1px solid #E5E5DE;border-radius:3px;padding:0 3px;
+    margin-left:4px;vertical-align:1.5px;line-height:1.4;
+  }
+
+  /* ---------- record ---------- */
+  .overlay{
+    position:absolute;inset:0;background:#fff;z-index:30;
+    display:flex;flex-direction:column;
+    transform:translateY(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);
+  }
+  .overlay.open{transform:translateY(0)}
+  .ovhead{display:flex;align-items:center;justify-content:space-between;padding:10px 24px 0}
+  .ovhead h1{font-size:17px;font-weight:500}
+  .ovveh{display:flex;align-items:center;gap:6px;margin:10px 24px 0;width:calc(100% - 48px);
+    background:#F4F4F0;border:none;border-radius:9px;padding:9px 12px;font-size:12px;
+    color:#8C8C82;font-family:inherit;cursor:pointer;text-align:left}
+  .ovveh b{font-size:12.5px;color:#17171A;font-weight:600}
+  .ovveh i{margin-left:auto;font-style:normal;color:#0F6E56;font-size:11.5px}
+  .back{font-size:14px;color:#0F6E56;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit}
+  .ovbody{flex:1;overflow-y:auto;padding:6px 24px 0;scrollbar-width:none}
+  .ovbody::-webkit-scrollbar{display:none}
+
+  .field{padding:16px 0;border-bottom:1px solid #F0F0E8}
+  .field:focus-within{border-bottom-color:#0F6E56}
+  .field label,.cell label{display:block;font-size:12px;color:#8C8C82;margin-bottom:8px;letter-spacing:.4px}
+  .inputline{display:flex;align-items:baseline;gap:6px}
+  .inputline input{
+    flex:1;border:none;outline:none;background:none;font-family:inherit;
+    font-size:32px;color:#1A1A18;letter-spacing:-1px;padding:0;width:100%;
+    font-variant-numeric:tabular-nums;
+  }
+  .inputline input::placeholder{color:#D2D2C8}
+  .inputline .unit{font-size:14px;color:#8C8C82;flex:0 0 auto}
+  .sub{font-size:12px;color:#A5A59A;margin-top:8px;font-variant-numeric:tabular-nums}
+  .sub b{color:#0F6E56;font-weight:500}
+
+  .chips{display:flex;gap:8px;padding:14px 0;border-bottom:1px solid #F0F0E8}
+  .chip{
+    flex:1;height:40px;border-radius:10px;border:1px solid #E8E8E0;background:#fff;
+    font-family:inherit;font-size:13px;color:#5F5E5A;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+  }
+  .chip.on{background:#E9F5F0;border-color:#0F6E56;color:#0F6E56;font-weight:500}
+  .chip small{font-size:11px;opacity:.7;font-weight:400;font-variant-numeric:tabular-nums}
+
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:16px 0;border-bottom:1px solid #F0F0E8}
+  .grid3 .cell{border-left:1px solid #F0F0E8;padding-left:10px}
+  .grid3 .cell:first-child{border-left:none;padding-left:0}
+  .grid3 input{
+    border:none;outline:none;background:none;font-family:inherit;padding:0;
+    font-size:20px;letter-spacing:-.5px;width:100%;font-variant-numeric:tabular-nums;
+  }
+  .grid3 input::placeholder{color:#D2D2C8}
+  .grid3 .iu{font-size:11px;color:#8C8C82;margin-left:3px}
+  .grid3 .line{display:flex;align-items:baseline}
+  .auto{font-size:9px;color:#0F6E56;background:#E9F5F0;padding:1px 4px;border-radius:3px;margin-left:4px;letter-spacing:0}
+
+  .switchrow{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid #F0F0E8}
+  .switchrow .t1{font-size:14px}
+  .switchrow .t2{font-size:11px;color:#A5A59A;margin-top:5px;line-height:1.5}
+  .sw{width:46px;height:27px;border-radius:14px;background:#E2E2D8;position:relative;transition:background .18s;flex:0 0 auto;cursor:pointer}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .18s;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+  .sw.on{background:#0F6E56}
+  .sw.on::after{transform:translateX(19px)}
+
+  .ovfoot{padding:14px 24px 26px;border-top:1px solid #F0F0E8;background:#fff}
+  .save{
+    width:100%;height:52px;border:none;border-radius:14px;background:#0F6E56;color:#fff;
+    font-size:15px;font-weight:500;font-family:inherit;cursor:pointer;letter-spacing:.5px;
+  }
+  .save:disabled{background:#E2E2D8;color:#A5A59A;cursor:default}
+  .savenote{text-align:center;font-size:11px;color:#A5A59A;margin-top:10px;height:14px;font-variant-numeric:tabular-nums}
+
+  /* ---------- tabbar ---------- */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;height:74px;z-index:10;
+    display:flex;align-items:center;justify-content:space-around;
+    padding:0 46px 14px;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(12px);border-top:1px solid #F0F0E8;
+    transition:opacity .18s ease;
+  }
+  .tabbar.hidden{opacity:0;pointer-events:none}
+  .tab{
+    background:none;border:none;font-family:inherit;font-size:11px;color:#A5A59A;
+    cursor:pointer;padding:10px 4px 4px;letter-spacing:.5px;flex:1;
+  }
+  .tab.active{color:#1A1A18;font-weight:500}
+  .fab{
+    position:absolute;left:50%;transform:translateX(-50%);bottom:30px;
+    width:56px;height:56px;border-radius:50%;border:none;background:#0F6E56;color:#fff;
+    font-size:26px;font-weight:300;line-height:1;cursor:pointer;
+    box-shadow:0 6px 18px rgba(15,110,86,.28);
+  }
+  .fab:active{transform:translateX(-50%) scale(.94)}
+
+  /* ---------- fuel sheet ---------- */
+  .mask{position:absolute;inset:0;background:rgba(20,20,15,.26);z-index:40;
+    opacity:0;pointer-events:none;transition:opacity .2s}
+  .mask.on{opacity:1;pointer-events:auto}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:41;background:#fff;
+    border-radius:22px 22px 0 0;padding:10px 24px 26px;
+    transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);
+    box-shadow:0 -8px 30px rgba(0,0,0,.08);
+  }
+  .sheet.on{transform:translateY(0)}
+  .handle{width:36px;height:4px;border-radius:2px;background:#E2E2D8;margin:0 auto 16px}
+  .sheet h2{font-size:17px;font-weight:500}
+  .sh-sub{font-size:11px;color:#A5A59A;margin-top:7px;line-height:1.6}
+  .frow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #F0F0E8}
+  .frow:last-of-type{border-bottom:none}
+  .radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #D8D8CC;flex:0 0 auto;position:relative;cursor:pointer}
+  .frow.on .radio{border-color:#0F6E56}
+  .frow.on .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#0F6E56}
+  .gname{font-size:14px;flex:1;cursor:pointer}
+  .gname small{display:block;font-size:11px;color:#A5A59A;margin-top:3px}
+  .frow.on .gname small{color:#0F6E56}
+  .frow input{
+    width:76px;text-align:right;border:none;background:#F5F5EF;border-radius:8px;
+    padding:8px 10px;font-family:inherit;font-size:15px;outline:none;
+    font-variant-numeric:tabular-nums;
+  }
+  .frow input:focus{background:#E9F5F0}
+  .frow .yuan{font-size:11px;color:#8C8C82}
+  .sheet .note{font-size:11px;color:#A5A59A;margin-top:14px;line-height:1.7;
+    padding-top:12px;border-top:1px solid #F0F0E8}
+
+  /* ---------- station picker ---------- */
+  .slist{margin-top:4px}
+  .sitem{display:flex;align-items:center;justify-content:space-between;
+    padding:14px 0;border-bottom:1px solid #F0F0E8;font-size:14px;cursor:pointer}
+  .sitem:last-child{border-bottom:none}
+  .sitem .sn{font-size:14px;color:#1A1A18}
+  .sitem .sc{font-size:11px;color:#A5A59A;font-variant-numeric:tabular-nums}
+  .sitem.other{color:#0F6E56;justify-content:flex-start;gap:6px}
+  #fStation{cursor:pointer}
+  #fStation.editing{cursor:text}
+  .pickbtn{font-size:11px;color:#A5A59A;padding:4px 2px 4px 10px;cursor:pointer;user-select:none}
+  /* 车辆切换 */
+  #carSwitch{cursor:pointer;user-select:none}
+  .cararw{font-size:10px;color:#A5A59A;margin-left:5px}
+  .vitem{display:flex;align-items:center;gap:10px;padding:13px 2px;border-bottom:1px solid #F0F0E8;cursor:pointer}
+  .vitem:last-child{border-bottom:none}
+  .vitem .radio{width:18px;height:18px;border-radius:50%;border:1.6px solid #C9C9C0;flex-shrink:0;position:relative}
+  .vitem.on .radio{border-color:#0F6E56}
+  .vitem.on .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#0F6E56}
+  .vitem .vn{flex:1;font-size:15px;font-weight:500}
+  .vitem .vn small{display:block;font-size:11px;color:#A5A59A;font-weight:400;margin-top:3px;letter-spacing:.4px}
+  .vitem .vc{font-size:11px;color:#A5A59A;font-variant-numeric:tabular-nums}
+  .vitem .vt{display:flex;align-items:center;gap:4px;font-size:11px;color:#A5A59A;flex-shrink:0}
+  .vitem .tin{width:56px;background:#fff;border:1px solid #E6E6DC;border-radius:7px;padding:5px 7px;
+    font:inherit;font-size:12px;text-align:right;color:#1A1A18;outline:none;font-variant-numeric:tabular-nums}
+  .vitem .tin:focus{border-color:#0F6E56}
+  .vitem .tin::placeholder{color:#C9C9C0;text-align:right}
+  .vitem .vedit{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    background:none;border:none;border-radius:8px;color:#BDBDB2;cursor:pointer;padding:0;
+    -webkit-tap-highlight-color:transparent}
+  .vitem .vedit:active{background:#EDEDE5;color:#0F6E56}
+  .vitem .vedit svg{width:15px;height:15px}
+  .vadd{margin-top:14px}
+  .vadd-title{font-size:11px;font-weight:600;color:#A5A59A;letter-spacing:.6px;margin-bottom:8px}
+  .vadd-row{display:flex;gap:8px;margin-bottom:8px}
+  .vadd-row input{flex:1;min-width:0;background:#F4F4F0;border:none;border-radius:9px;padding:10px 12px;font-size:13px;font-family:inherit;outline:none}
+  .vadd-acts{display:flex;gap:8px}
+  .vadd-btn{flex:1;height:40px;border:none;border-radius:10px;background:#E9F5F0;color:#0F6E56;
+    font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .vadd-btn.ghost{flex:0 0 88px;background:#F4F4F0;color:#6B6B70;font-weight:500}
+
+  /* ---------- 联网相关 ---------- */
+  .georow{display:flex;align-items:center;gap:7px;padding:9px 2px 2px;
+    font-size:11.5px;color:#A5A59A;line-height:1.5}
+  .georow .ic{font-size:11px;color:#0F6E56;flex-shrink:0}
+  .georow .gt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .georow .gt b{color:#1A1A18;font-weight:500}
+  .georow .gt em{font-style:normal;color:#A5A59A;margin-left:5px}
+  .georow .gbtn{font-size:11.5px;color:#0F6E56;flex-shrink:0;
+    padding:3px 9px;border:1px solid #CFE3DB;border-radius:6px;cursor:pointer;
+    background:transparent;font-family:inherit}
+  .georow .gbtn:active{background:#EAF3EF}
+  .georow .gbtn[disabled]{color:#B5B5AA;border-color:#E4E4DC;cursor:default}
+  .georow.busy .ic{animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.25}}
+
+  .syncbar{display:flex;align-items:center;justify-content:space-between;
+    margin-top:12px;padding:10px 12px;background:#F7F7F3;border-radius:9px}
+  .syncbar .sl{font-size:11px;color:#8C8C82;line-height:1.5}
+  .syncbar .sl b{color:#1A1A18;font-weight:500}
+  .syncbar .sr{font-size:11.5px;color:#0F6E56;flex-shrink:0;
+    padding:3px 9px;border:1px solid #CFE3DB;border-radius:6px;cursor:pointer;
+    background:transparent;font-family:inherit}
+  .syncbar .sr[disabled]{color:#B5B5AA;border-color:#E4E4DC;cursor:default}
+
+  /* ---------- 归因 ---------- */
+  .attr{margin-top:14px;padding-top:13px;border-top:1px solid #F0F0E8}
+  .attr .ah2{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .attr .ah2 span:first-child{font-size:11px;color:#A5A59A;letter-spacing:.3px}
+  .attr .ah2 .rb{font-size:11px;color:#8C8C82;font-variant-numeric:tabular-nums}
+  .attr .kv{display:flex;gap:0;margin-bottom:10px}
+  .attr .kv>div{flex:1;position:relative}
+  .attr .kv>div+div::before{content:"";position:absolute;left:0;top:2px;bottom:2px;
+    width:1px;background:#F0F0E8}
+  .attr .kv em{display:block;font-style:normal;font-size:10.5px;color:#A5A59A;margin-bottom:3px}
+  .attr .kv strong{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+  .attr .kv strong u{font-style:normal;text-decoration:none;font-size:10px;
+    color:#A5A59A;font-weight:400;margin-left:2px}
+  .attr .conc{font-size:12px;color:#6B6B70;line-height:1.72;padding:9px 11px;
+    background:#F7F7F3;border-radius:8px}
+  .attr .conc b{color:#1A1A18;font-weight:600}
+  .attr .conc.warn{background:#FAF3E9;color:#8A5A1A}
+  .attr .conc.warn b{color:#7A4A10}
+  .legend{display:flex;gap:14px;margin-top:6px;font-size:10.5px;color:#A5A59A}
+  .legend i{display:inline-block;width:12px;height:2px;border-radius:1px;
+    vertical-align:middle;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="stage-label">carassistant · 原型</div>
+
+<div class="phone">
+  <div class="statusbar">
+    <span>11:25</span>
+    <div class="right">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <span style="font-size:11px;font-weight:500">5G</span>
+      <div class="batt"></div>
+    </div>
+  </div>
+
+  <div class="viewport">
+    <section class="page active" id="page-home">
+      <div class="topbar">
+        <div>
+          <div id="carSwitch">
+            <div class="carname" id="carName">我的车<span class="cararw">▾</span></div>
+            <div class="carplate" id="carPlate">陕A·8K2L7</div>
+          </div>
+          <div class="fuelline" id="fuelLine"><span id="fuelLabel">92# ¥8.49</span><span class="arw">›</span></div>
+        </div>
+        <div class="today" id="today"></div>
+      </div>
+
+      <div class="hero">
+        <div class="label">当前油耗</div>
+        <div class="num"><b id="cur">7.52</b><span>L/100km</span></div>
+        <div class="delta down" id="delta"></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">上次加油</div>
+        <div class="trio">
+          <div><em>时间</em><strong id="lastDays">3 天前</strong></div>
+          <div><em>油量</em><strong id="lastLiters">44.0<u>L</u></strong></div>
+          <div><em>金额</em><strong id="lastAmount">¥340</strong></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="gcell"><em>累计行驶</em><strong id="totalKm">4,690<u>km</u></strong></div>
+        <div class="gcell"><em>累计油费</em><strong id="totalCost">¥3,225</strong></div>
+        <div class="gcell"><em>累计平均</em><strong id="avgL100">7.91<u>L/100km</u></strong></div>
+        <div class="gcell"><em>加油次数</em><strong id="totalCount">10<u>次</u></strong></div>
+      </div>
+
+      <div class="advice">
+        <div class="adv ok">
+          <div class="ah"><i class="dot"></i>预计加油里程</div>
+          <strong id="rangeOdo">13,488<u>km</u></strong>
+          <small id="rangeSub">满箱 45 L 能跑约 598 km</small>
+        </div>
+      </div>
+
+      <div class="fold" id="foldTrend">
+        <button class="foldbtn" id="foldBtn">
+          <span class="l">油耗趋势<i id="trendMeta">近 8 次</i></span>
+          <span class="chev"></span>
+        </button>
+        <div class="foldbody">
+          <div class="chartwrap">
+            <svg class="chartsvg" id="chart" viewBox="0 0 342 152" preserveAspectRatio="none"></svg>
+            <div class="chartfoot"><span id="chartFrom"></span><span id="chartTo"></span></div>
+            <div class="legend">
+              <span><i style="background:#0F6E56"></i>油耗</span>
+              <span><i style="background:#E8E0D2"></i>月均温</span>
+            </div>
+          </div>
+
+          <div class="attr">
+            <div class="ah2">
+              <span>气温能解释多少</span>
+              <span class="rb" id="attrR"></span>
+            </div>
+            <div class="kv">
+              <div><em>每 10℃</em><strong id="attrSlope">—</strong></div>
+              <div><em>极差</em><strong id="attrGap">—</strong></div>
+              <div><em>最大偏离</em><strong id="attrRes">—</strong></div>
+            </div>
+            <div class="conc" id="attrConc"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint"><i></i><span id="hintText"></span></div>
+    </section>
+
+    <section class="page" id="page-history">
+      <div class="listhead">
+        <div class="lhtop">
+          <h1>加油记录</h1>
+          <div class="morewrap">
+            <button class="morebtn" id="moreBtn" aria-label="更多操作"><i></i><i></i><i></i></button>
+            <div class="moremenu" id="moreMenu">
+              <button id="exportBtn">导出 CSV</button>
+              <label for="importFile">导入 CSV</label>
+            </div>
+          </div>
+        </div>
+        <p id="listSummary"></p>
+        <input type="file" id="importFile" accept=".csv,text/csv" hidden>
+      </div>
+      <div class="opmsg" id="opMsg"></div>
+      <div class="rows" id="rows"></div>
+    </section>
+
+    <section class="overlay" id="page-record">
+      <div class="ovhead">
+        <button class="back" id="backBtn">取消</button>
+        <h1>记一笔</h1>
+        <span style="width:28px"></span>
+      </div>
+      <button class="ovveh" id="ovVeh">
+        <span>记到</span><b id="ovVehName">我的车</b><i>切换 ›</i>
+      </button>
+
+      <div class="ovbody">
+        <div class="field">
+          <label>里程表读数</label>
+          <div class="inputline">
+            <input id="fOdo" type="number" inputmode="numeric" placeholder="12890">
+            <span class="unit">km</span>
+          </div>
+          <div class="sub" id="odoSub"></div>
+        </div>
+
+        <div class="chips" id="chips">
+          <button class="chip on" data-g="92">92#<small>8.49</small></button>
+          <button class="chip" data-g="95">95#<small>8.97</small></button>
+          <button class="chip" data-g="98">98#<small>10.25</small></button>
+        </div>
+
+        <div class="grid3">
+          <div class="cell">
+            <label>金额</label>
+            <div class="line">
+              <input id="fAmount" type="number" inputmode="decimal" placeholder="0">
+              <span class="iu">元</span>
+            </div>
+          </div>
+          <div class="cell">
+            <label>升数<span class="auto" id="litersAuto" style="display:none">自动</span></label>
+            <div class="line">
+              <input id="fLiters" type="number" inputmode="decimal" placeholder="—">
+              <span class="iu">L</span>
+            </div>
+          </div>
+          <div class="cell">
+            <label>单价<span class="auto" id="priceAuto" style="display:none">自动</span></label>
+            <div class="line">
+              <input id="fPrice" type="number" inputmode="decimal">
+              <span class="iu">元</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switchrow">
+          <div>
+            <div class="t1">已加满</div>
+            <div class="t2">只有加满才能算出这段的油耗</div>
+          </div>
+          <div class="sw on" id="fullSw"></div>
+        </div>
+
+        <div class="field" style="border-bottom:none">
+          <label>加油站 · 选填</label>
+          <div class="inputline">
+            <input id="fStation" type="text" readonly placeholder="选择或输入加油站" style="font-size:16px;letter-spacing:0">
+            <span class="pickbtn" id="stationBtn">▾</span>
+          </div>
+          <div class="georow" id="geoRow">
+            <span class="ic">◉</span>
+            <span class="gt" id="geoText">记录时顺带带出附近的站</span>
+            <button class="gbtn" id="geoBtn">定位</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ovfoot">
+        <button class="save" id="saveBtn" disabled>保存</button>
+        <div class="savenote" id="saveNote"></div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab active" data-target="page-home">首页</button>
+    <button class="fab" id="openRecord">+</button>
+    <button class="tab" data-target="page-history">历史</button>
+  </nav>
+
+  <div class="mask" id="mask"></div>
+  <div class="sheet" id="fuelSheet">
+    <div class="handle"></div>
+    <h2>油价</h2>
+    <div class="sh-sub" id="fuelSub">陕西省最高零售价 · 自动同步<br>实际以加油机挂牌为准，民营站常有浮动</div>
+    <div style="margin-top:6px">
+      <div class="frow on" data-g="92">
+        <div class="radio"></div>
+        <div class="gname">92# 汽油<small>当前使用</small></div>
+        <input type="number" step="0.01" data-price="92" value="8.49"><span class="yuan">元/L</span>
+      </div>
+      <div class="frow" data-g="95">
+        <div class="radio"></div>
+        <div class="gname">95# 汽油<small>切换为默认</small></div>
+        <input type="number" step="0.01" data-price="95" value="8.97"><span class="yuan">元/L</span>
+      </div>
+      <div class="frow" data-g="98">
+        <div class="radio"></div>
+        <div class="gname">98# 汽油<small>切换为默认</small></div>
+        <input type="number" step="0.01" data-price="98" value="10.25"><span class="yuan">元/L</span>
+      </div>
+    </div>
+    <div class="syncbar">
+      <div class="sl" id="syncInfo">已同步 · 10月20日 08:12</div>
+      <button class="sr" id="syncBtn">刷新</button>
+    </div>
+    <div class="note">国内成品油每 10 个工作日调整一次<br>下一轮调价窗口：2026 年 10 月 29 日 24 时</div>
+  </div>
+
+  <div class="sheet" id="stationSheet">
+    <div class="handle"></div>
+    <h2>加油站</h2>
+    <div class="sh-sub">按加油次数排序 · 只列你自己加过的站<br>定位只是顺手，拒绝或没信号也能照常记录</div>
+    <div class="slist" id="stationList"></div>
+    <div class="sitem other" id="stationOther">+ 手动输入</div>
+  </div>
+
+  <div class="sheet" id="vehSheet">
+    <div class="handle"></div>
+    <h2>车辆</h2>
+    <div class="sh-sub">每辆车独立记账、独立算油耗，互不影响</div>
+    <div class="slist" id="vehList"></div>
+    <div class="vadd">
+      <div class="vadd-title" id="vFormTitle">添加车辆</div>
+      <div class="vadd-row">
+        <input type="text" id="vName" placeholder="名称，如 家里的SUV" maxlength="12">
+        <input type="text" id="vPlate" placeholder="车牌（选填）" maxlength="10">
+      </div>
+      <div class="vadd-row">
+        <input type="text" id="vTank" placeholder="油箱 L（选填）" inputmode="decimal">
+        <input type="text" id="vGrade" placeholder="标号 92" inputmode="numeric">
+      </div>
+      <div class="vadd-acts">
+        <button class="vadd-btn ghost" id="vCancel" style="display:none">取消</button>
+        <button class="vadd-btn" id="vAddBtn">＋ 添加车辆</button>
+      </div>
+    </div>
+    <div class="note">切车后，首页、历史、录入默认值都跟着这辆车走<br>记录不会跨车混算</div>
+  </div>
+</div>
+
+<script>
+const NOW = new Date();
+const TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+
+let vehicles = [
+  { id: 1, name: '我的车', plate: '陕A·8K2L7', tank: 45, fuelGrade: '92' },
+  { id: 2, name: '家里的SUV', plate: '陕A·F5D0', tank: 60, fuelGrade: '95' }
+];
+let curVeh = 1;
+/* 容忍零车辆或悬空 id：回落到第一辆，避免整页崩在 undefined */
+const curV = () => {
+  const v = vehicles.find(x => x.id === curVeh) || vehicles[0] || null;
+  if (v) curVeh = v.id;
+  return v;
+};
+const vRecs = () => records.filter(r => r.veh === curVeh);
+
+const FUEL = { '92': 8.49, '95': 8.97, '98': 10.25 };
+let curGrade = '92';
+
+/* 省级最高零售价，线上由 10 个工作日一次的调价通知拉取；本地存一份兜底 */
+const FUEL_META = { syncedAt: '2026-10-20 08:12', priceDay: '2026-09-24', nextWindow: '2026-10-29' };
+
+/* 西安月均温（℃，常年值近似）。线上取气象接口的日均温，按区间天数加权 */
+const TEMP_BY_MONTH = { 5: 20.4, 6: 26.1, 7: 28.0, 8: 27.0, 9: 21.5, 10: 14.6 };
+
+function segTemp(from, to) {
+  const b = new Date(to);
+  let sum = 0, n = 0;
+  for (const d = new Date(from); d <= b; d.setDate(d.getDate() + 1)) {
+    sum += TEMP_BY_MONTH[d.getMonth() + 1] ?? 15; n++;
+  }
+  return n ? sum / n : 15;
+}
+
+/* 一元回归 + 残差。返回 { slope, icept, r, r2, maxRes } */
+function fitTemp(points) {
+  const n = points.length;
+  if (n < 4) return null;
+  const mx = points.reduce((a, p) => a + p.t, 0) / n;
+  const my = points.reduce((a, p) => a + p.l, 0) / n;
+  let cov = 0, vx = 0, vy = 0;
+  points.forEach(p => { cov += (p.t - mx) * (p.l - my); vx += (p.t - mx) ** 2; vy += (p.l - my) ** 2; });
+  if (vx === 0) return null;
+  const slope = cov / vx, icept = my - slope * mx;
+  const r = cov / Math.sqrt(vx * vy);
+  let maxRes = 0;
+  points.forEach(p => { maxRes = Math.max(maxRes, Math.abs(p.l - (slope * p.t + icept))); });
+  return { slope, icept, r, r2: r * r, maxRes };
+}
+
+let records = [
+  /* ---- 我的车（92#，小车）---- */
+  { veh: 1, id: 10, date: '2026-10-18', odo: 12890, liters: 44.0, amount: 374, price: 8.49, full: true,  station: '中石化 · 科技路' },
+  { veh: 1, id: 9,  date: '2026-10-02', odo: 12305, liters: 46.8, amount: 397, price: 8.49, full: true,  station: '中石化 · 科技路' },
+  { veh: 1, id: 8,  date: '2026-09-15', odo: 11720, liters: 23.1, amount: 189, price: 8.17, full: true,  station: '延长壳牌 · 高新' },
+  { veh: 1, id: 7,  date: '2026-08-30', odo: 11430, liters: 20.0, amount: 163, price: 8.17, full: false, station: '中石油 · 丈八', estimated: true },
+  { veh: 1, id: 6,  date: '2026-08-12', odo: 11160, liters: 46.3, amount: 378, price: 8.17, full: true,  station: '中石化 · 科技路' },
+  { veh: 1, id: 5,  date: '2026-07-24', odo: 10570, liters: 49.0, amount: 400, price: 8.17, full: true,  station: '中石化 · 科技路' },
+  { veh: 1, id: 4,  date: '2026-07-05', odo: 9980,  liters: 49.5, amount: 404, price: 8.17, full: true,  station: '中石油 · 丈八' },
+  { veh: 1, id: 3,  date: '2026-06-16', odo: 9385,  liters: 47.2, amount: 386, price: 8.17, full: true,  station: '中石化 · 科技路', estimated: true },
+  { veh: 1, id: 2,  date: '2026-05-28', odo: 8790,  liters: 45.1, amount: 368, price: 8.17, full: true,  station: '中石化 · 科技路' },
+  { veh: 1, id: 1,  date: '2026-05-08', odo: 8200,  liters: 45.0, amount: 368, price: 8.17, full: true,  station: '中石化 · 科技路' },
+  /* ---- 家里的SUV（95#，跑得少）---- */
+  { veh: 2, id: 20, date: '2026-10-11', odo: 44380, liters: 57.5, amount: 515.78, price: 8.97, full: true,  station: '中石化 · 长安路' },
+  { veh: 2, id: 21, date: '2026-09-20', odo: 43510, liters: 56.5, amount: 506.81, price: 8.97, full: true,  station: '中石化 · 长安路' },
+  { veh: 2, id: 22, date: '2026-08-26', odo: 42890, liters: 25.5, amount: 228.74, price: 8.97, full: false, station: '中石油 · 韦曲', estimated: true },
+  { veh: 2, id: 23, date: '2026-08-03', odo: 42310, liters: 57.0, amount: 511.29, price: 8.97, full: true,  station: '中石化 · 长安路' }
+];
+
+function compute(rs) {
+  const sorted = [...rs].sort((a, b) => a.odo - b.odo);
+  const fulls = sorted.filter(r => r.full);
+  const map = {};
+  for (let i = 1; i < fulls.length; i++) {
+    const a = fulls[i - 1], b = fulls[i];
+    const fuel = sorted.filter(r => r.odo > a.odo && r.odo <= b.odo).reduce((s, r) => s + r.liters, 0);
+    const dist = b.odo - a.odo;
+    /* 里程回退或重复：不产生油耗，但留下标记，UI 需要显示出来而不是静默跳过 */
+    if (dist <= 0) { map[b.id] = { anomaly: 'odometer' }; continue; }
+    map[b.id] = { l100: fuel / dist * 100, dist, fuel, from: a.date, to: b.date, toOdo: b.odo };
+  }
+  return map;
+}
+let calc = compute(records);
+
+const fmt = n => n.toLocaleString('zh-CN');
+const md = s => { const [, m, d] = s.split('-'); return `${+m}月${+d}日`; };
+const byDateDesc = () => [...vRecs()].sort((a, b) => b.date.localeCompare(a.date));
+const maxOdo = () => Math.max(...vRecs().map(r => r.odo));
+
+/* 异常区间：里程回退，或油耗超出物理合理范围（>25 或 <3 L/100km）。
+   不参与首页、趋势、归因，只在历史里标记核对 —— 计算没错，但数据大概率录错了 */
+const isSusSeg = c => !c || c.anomaly || c.l100 > 25 || c.l100 < 3;
+
+function renderHome() {
+  const v = curV();
+  document.getElementById('carName').innerHTML = `${v ? v.name : '添加车辆'}<span class="cararw">▾</span>`;
+  document.getElementById('carPlate').textContent = v ? v.plate : '还没有车';
+
+  const recs = v ? vRecs() : [];
+  const sorted = v ? byDateDesc() : [];
+  if (!sorted.length) {
+    document.getElementById('cur').textContent = '—';
+    document.getElementById('delta').textContent = '';
+    ['lastDays', 'lastLiters', 'lastAmount'].forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('totalKm').innerHTML = `0<u>km</u>`;
+    document.getElementById('totalCost').textContent = '¥0';
+    document.getElementById('avgL100').innerHTML = '—';
+    document.getElementById('totalCount').innerHTML = `0<u>次</u>`;
+    document.getElementById('rangeOdo').innerHTML = '—';
+    document.getElementById('rangeSub').textContent = '还没有可信的油耗区间';
+    document.getElementById('trendMeta').textContent = '暂无';
+    document.getElementById('listSummary').textContent = v ? '这辆车还没有记录，点下方 + 开始' : '先点上方添加一辆车';
+    document.getElementById('chart').innerHTML = '';
+    renderAttr([]);
+    return;
+  }
+  const last = sorted[0];
+  const withV = sorted.filter(r => !isSusSeg(calc[r.id]));
+  const min = Math.min(...recs.map(r => r.odo));
+  const totalKm = maxOdo() - min;
+  const totalCost = recs.reduce((s, r) => s + r.amount, 0);
+  /* 累计平均按可信区间累计：无异常时与「sum(liters where odo > min)/totalKm」完全等价，
+     有异常时自动排除坏数据，不用脏里程算平均 */
+  const validSegs = recs.map(r => calc[r.id]).filter(c => !isSusSeg(c));
+  const vFuel = validSegs.reduce((s, c) => s + c.fuel, 0);
+  const vDist = validSegs.reduce((s, c) => s + c.dist, 0);
+
+  document.getElementById('totalKm').innerHTML = `${fmt(totalKm)}<u>km</u>`;
+  document.getElementById('totalCost').textContent = `¥${fmt(totalCost)}`;
+  document.getElementById('avgL100').innerHTML =
+    vDist > 0 ? `${(vFuel / vDist * 100).toFixed(2)}<u>L/100km</u>` : '—';
+  document.getElementById('totalCount').innerHTML = `${recs.length}<u>次</u>`;
+
+  const days = Math.round((TODAY - new Date(last.date)) / 86400000);
+  document.getElementById('lastDays').textContent = days <= 0 ? '今天' : `${days} 天前`;
+  document.getElementById('lastLiters').innerHTML = `${last.liters.toFixed(1)}<u>L</u>`;
+  document.getElementById('lastAmount').textContent = `¥${last.amount}`;
+  document.getElementById('hintText').textContent = days <= 0 ? '今天已记录' : `距上次记录 ${days} 天`;
+  document.getElementById('today').textContent = `${TODAY.getMonth() + 1}月${TODAY.getDate()}日`;
+  document.getElementById('fuelLabel').textContent = `${curGrade}# ¥${FUEL[curGrade].toFixed(2)}`;
+
+  if (!withV.length) {
+    document.getElementById('cur').textContent = '—';
+    document.getElementById('delta').textContent = '';
+    document.getElementById('rangeOdo').innerHTML = '—';
+    document.getElementById('rangeSub').textContent = '还没有可信的油耗区间';
+    document.getElementById('trendMeta').textContent = '暂无';
+    document.getElementById('listSummary').textContent =
+      `${v.name} · ${recs.length} 次加油 · 累计 ${fmt(totalKm)} km · ¥${fmt(totalCost)}`;
+    document.getElementById('chart').innerHTML = '';
+    renderAttr([]);
+    return;
+  }
+
+  const cur = withV[0], prev = withV[1];
+  const curL100 = calc[cur.id].l100;
+
+  document.getElementById('cur').textContent = curL100.toFixed(2);
+
+  if (prev) {
+    const diff = curL100 - calc[prev.id].l100;
+    const down = diff < 0;
+    const dEl = document.getElementById('delta');
+    dEl.className = 'delta ' + (down ? 'down' : 'up');
+    dEl.innerHTML = `${down ? '↓' : '↑'} ${Math.abs(diff).toFixed(2)}<small>比上一箱</small>`;
+  } else {
+    document.getElementById('delta').textContent = '';
+  }
+
+  /* 标了油箱按满箱算（满箱是从加满那刻开始烧的，起点取那个加满点）；
+     没标则退回「上次加油量」，缺箱底余油，偏低。两种口径都要写在下方小字里 */
+  const tank = v && v.tank > 0 ? v.tank : 0;
+  const rangeFuel = tank > 0 ? tank : last.liters;
+  const range = rangeFuel / curL100 * 100;
+  const rangeKm = Math.round(range);
+  const rangeStart = tank > 0 ? (calc[cur.id].toOdo ?? maxOdo()) : maxOdo();
+  document.getElementById('rangeOdo').innerHTML = `${fmt(rangeStart + rangeKm)}<u>km</u>`;
+  document.getElementById('rangeSub').textContent = tank > 0
+    ? `满箱 ${(+tank.toFixed(2))} L 能跑约 ${rangeKm} km`
+    : `续航约 ${rangeKm} km（按上次加油 ${last.liters.toFixed(1)} L 估）· 填油箱容积更准`;
+
+  const pts = withV.slice().sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('trendMeta').textContent = `近 ${pts.length} 次`;
+  document.getElementById('listSummary').textContent =
+    `${v.name} · ${recs.length} 次加油 · 累计 ${fmt(totalKm)} km · ¥${fmt(totalCost)}`;
+
+  drawChart(pts);
+  renderAttr(pts);
+}
+
+function drawChart(pts) {
+  const svg = document.getElementById('chart');
+  if (!pts.length) return;
+  const W = 342, H = 152, PX = 14, PT = 16, PB = 46;
+  const vals = pts.map(p => calc[p.id].l100);
+  const temps = pts.map(p => segTemp(calc[p.id].from, calc[p.id].to));
+  const lo = Math.min(...vals) - 0.25, hi = Math.max(...vals) + 0.25;
+  const step = pts.length > 1 ? (W - PX * 2) / (pts.length - 1) : 0;
+  const plotH = H - PT - PB;
+  const xy = vals.map((v, i) => [
+    PX + i * step,
+    PT + (1 - (v - lo) / (hi - lo)) * plotH
+  ]);
+  const line = xy.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = line + ` L${xy[xy.length - 1][0].toFixed(1)} ${H - PB} L${xy[0][0].toFixed(1)} ${H - PB} Z`;
+  const lastP = xy[xy.length - 1];
+
+  /* 气温：底部背景柱，与油耗同一时间轴，不另设刻度 */
+  const tLo = Math.min(...temps) - 1.5, tHi = Math.max(...temps) + 1.5;
+  const BAR0 = H - 6, BAR1 = H - PB + 4;
+  const barW = Math.max(7, Math.min(26, step * 0.5));
+  const bars = temps.map((t, i) => {
+    const h = Math.max(2, (t - tLo) / (tHi - tLo) * (BAR0 - BAR1));
+    return `<rect x="${(PX + i * step - barW / 2).toFixed(1)}" y="${(BAR0 - h).toFixed(1)}"
+      width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#E8E0D2"/>`;
+  }).join('');
+
+  svg.innerHTML = `
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F6E56" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#0F6E56" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${bars}
+    <path d="${area}" fill="url(#g)"/>
+    <path d="${line}" fill="none" stroke="#0F6E56" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${xy.slice(0, -1).map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2" fill="#fff" stroke="#0F6E56" stroke-width="1.2"/>`).join('')}
+    <circle cx="${lastP[0].toFixed(1)}" cy="${lastP[1].toFixed(1)}" r="3.4" fill="#0F6E56"/>
+  `;
+  document.getElementById('chartFrom').textContent = md(pts[0].date);
+  document.getElementById('chartTo').textContent = md(pts[pts.length - 1].date);
+}
+
+/* 归因：把区间油耗和区间气温做一元回归，看气温能解释多少、哪段解释不了 */
+function renderAttr(pts) {
+  const base = document.getElementById('attrConc');
+  if (pts.length < 4) {
+    document.getElementById('attrR').textContent = '';
+    ['attrSlope', 'attrGap', 'attrRes'].forEach(id => document.getElementById(id).textContent = '—');
+    base.className = 'conc';
+    base.textContent = pts.length
+      ? '至少 4 个完整区间（两次加满之间）才能做归因，现在还不够。'
+      : '这辆车还没有可归因的区间 —— 需要至少两次加满的记录。';
+    return;
+  }
+  const points = pts.map(p => ({
+    date: p.date,
+    l: calc[p.id].l100,
+    t: segTemp(calc[p.id].from, calc[p.id].to)
+  }));
+  const fit = fitTemp(points);
+  if (!fit) {
+    base.textContent = '气温没有变化，无法分离。';
+    return;
+  }
+
+  document.getElementById('attrR').textContent = `r = ${fit.r.toFixed(2)} · 解释 ${Math.round(fit.r2 * 100)}%`;
+  document.getElementById('attrSlope').innerHTML = `${fit.slope >= 0 ? '+' : ''}${(fit.slope * 10).toFixed(2)}<u>L/10℃</u>`;
+  document.getElementById('attrRes').innerHTML = `${fit.maxRes.toFixed(2)}<u>L</u>`;
+
+  const hot = points.reduce((a, p) => p.t > a.t ? p : a);
+  const cold = points.reduce((a, p) => p.t < a.t ? p : a);
+  const gap = hot.l - cold.l;
+  document.getElementById('attrGap').innerHTML = `${gap >= 0 ? '+' : ''}${gap.toFixed(2)}<u>L</u>`;
+
+  const worst = points.reduce((a, p) =>
+    Math.abs(p.l - (fit.slope * p.t + fit.icept)) > Math.abs(a.l - (fit.slope * a.t + fit.icept)) ? p : a);
+  const worstRes = worst.l - (fit.slope * worst.t + fit.icept);
+
+  const TOL = 0.35; /* 超过这个残差才值得看，取残差标准差的约 2 倍 */
+  if (fit.maxRes < TOL) {
+    base.className = 'conc';
+    base.innerHTML = `气温解释了 <b>${Math.round(fit.r2 * 100)}%</b> 的波动。最热的 ${md(hot.date)} 那段比 ${md(cold.date)} 高 <b>${Math.abs(gap).toFixed(2)} L</b>，而每一段与气温预测的偏差都没超过 <b>${fit.maxRes.toFixed(2)} L</b> —— 没有跳出去的异常，<b>车况正常</b>，那点起伏是空调和冷启动。`;
+  } else {
+    base.className = 'conc warn';
+    base.innerHTML = `${md(worst.date)} 收尾的那段比气温预测高 <b>${worstRes.toFixed(2)} L</b>，其余都在 ${TOL} 以内。这段如果是市区拥堵、多载或短途多，就解释得通；否则值得留意胎压和机油。`;
+  }
+}
+
+function renderList() {
+  document.getElementById('rows').innerHTML = byDateDesc().map(r => {
+    const c = calc[r.id];
+    let right;
+    if (c && c.anomaly) right = `<b class="sus">异常</b><span>里程回退 · 不计算</span>`;
+    else if (c && (c.l100 > 25 || c.l100 < 3)) right = `<b class="sus">${c.l100.toFixed(2)}</b><span>油耗异常 · 核对里程</span>`;
+    else if (c) right = `<b>${c.l100.toFixed(2)}</b><span>L/100km</span>`;
+    else if (!r.full) right = `<b class="muted">未加满</b><span>油量并入下一次</span>`;
+    else right = `<b class="muted">基准</b><span>首次记录</span>`;
+    const tag = r.full ? '' : '<span class="tag">未加满</span>';
+    return `<div class="row">
+      <div class="l">
+        <div class="d">${md(r.date)}${tag}</div>
+        <div class="m">${fmt(r.odo)} km · ${r.liters.toFixed(1)} L${r.estimated ? '<span class="est">估</span>' : ''} · ¥${r.amount}</div>
+      </div>
+      <div class="r">${right}</div>
+    </div>`;
+  }).join('');
+}
+
+/* calc 必须按车分别算：两辆车的里程表读数很可能交叠，全局排序会把区间算串 */
+function renderAll() {
+  calc = {};
+  vehicles.forEach(v => Object.assign(calc, compute(records.filter(r => r.veh === v.id))));
+  renderHome();
+  renderList();
+  paintOvVeh();
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(t.dataset.target).classList.add('active');
+  });
+});
+
+document.getElementById('foldBtn').addEventListener('click', () => {
+  document.getElementById('foldTrend').classList.toggle('open');
+});
+
+const ov = document.getElementById('page-record');
+const tabbar = document.querySelector('.tabbar');
+const fOdo = document.getElementById('fOdo');
+const fAmount = document.getElementById('fAmount');
+const fLiters = document.getElementById('fLiters');
+const fPrice = document.getElementById('fPrice');
+const fStationEl = document.getElementById('fStation');
+const saveBtn = document.getElementById('saveBtn');
+const saveNote = document.getElementById('saveNote');
+const litersAuto = document.getElementById('litersAuto');
+const priceAuto = document.getElementById('priceAuto');
+let isFull = true;
+let touchedPrice = false, touchedLiters = false;
+
+const openRec = () => { ov.classList.add('open'); tabbar.classList.add('hidden'); };
+const closeRec = () => { ov.classList.remove('open'); tabbar.classList.remove('hidden'); };
+
+document.getElementById('openRecord').addEventListener('click', () => {
+  /* 没有车就先建车：记账必须挂在某辆车上，不能记到「无」 */
+  if (!curV()) {
+    document.getElementById('carSwitch').click();
+    setTimeout(() => document.getElementById('vName').focus(), 320);
+    return;
+  }
+  const lo = maxOdo();
+  const recent = byDateDesc()[0] || null; /* 新车第一条记录，没有上次 */
+  fOdo.value = ''; fAmount.value = ''; fLiters.value = '';
+  fPrice.value = ((recent && recent.price) || FUEL[curGrade]).toFixed(2);
+  touchedPrice = false; touchedLiters = false;
+  syncChips();
+  litersAuto.style.display = 'none';
+  priceAuto.style.display = 'none';
+  fStationEl.value = (recent && recent.station) || '';
+  fStationEl.readOnly = true;
+  fStationEl.classList.remove('editing');
+  document.getElementById('odoSub').innerHTML = isFinite(lo) ? `上次 ${fmt(lo)} km` : '这辆车的第一条记录';
+  saveNote.textContent = '';
+  resetGeo();
+  openRec();
+  setTimeout(() => fOdo.focus(), 260);
+});
+
+document.getElementById('backBtn').addEventListener('click', closeRec);
+
+document.getElementById('fullSw').addEventListener('click', function () {
+  isFull = !isFull;
+  this.classList.toggle('on', isFull);
+});
+
+fOdo.addEventListener('input', () => {
+  const v = +fOdo.value, lo = maxOdo();
+  const sub = document.getElementById('odoSub');
+  if (!fOdo.value) sub.innerHTML = `上次 ${fmt(lo)} km`;
+  else if (v <= lo) sub.innerHTML = `<span style="color:#A32D2D">应大于上次 ${fmt(lo)} km</span>`;
+  else sub.innerHTML = `上次 ${fmt(lo)} km · <b>+${fmt(v - lo)} km</b>`;
+  validate();
+});
+
+function sync(target) {
+  const a = +fAmount.value, l = +fLiters.value, p = +fPrice.value;
+  if (target === 'amount') {
+    if (a > 0 && p > 0) { fLiters.value = (a / p).toFixed(2); litersAuto.style.display = ''; priceAuto.style.display = 'none'; }
+  } else if (target === 'liters') {
+    if (a > 0 && l > 0) { fPrice.value = (a / l).toFixed(2); priceAuto.style.display = ''; litersAuto.style.display = 'none'; }
+  } else {
+    if (a > 0 && p > 0) { fLiters.value = (a / p).toFixed(2); litersAuto.style.display = ''; priceAuto.style.display = 'none'; }
+  }
+  validate();
+}
+
+fAmount.addEventListener('input', () => sync('amount'));
+fLiters.addEventListener('input', () => { touchedLiters = true; touchedPrice = false; sync('liters'); });
+fPrice.addEventListener('input', () => { touchedPrice = true; touchedLiters = false; sync('price'); });
+
+function validate() {
+  const odo = +fOdo.value, amt = +fAmount.value, lit = +fLiters.value;
+  const ok = odo > maxOdo() && amt > 0;
+  saveBtn.disabled = !ok;
+  const est = !(touchedPrice || touchedLiters);
+  if (ok && lit > 0) saveNote.textContent = `${fmt(odo)} km · ${lit.toFixed(2)} L${est ? '（推算）' : ''} · ¥${amt}`;
+  else if (ok) saveNote.textContent = '';
+  else saveNote.textContent = '填里程和金额就够了';
+}
+
+saveBtn.addEventListener('click', () => {
+  const odo = +fOdo.value, amt = +fAmount.value;
+  const price = +fPrice.value || 7.72;
+  const liters = +fLiters.value || amt / price;
+  const d = new Date();
+  const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  records.push({
+    veh: curVeh,
+    id: Math.max(0, ...records.map(r => r.id)) + 1, date: ds, odo,
+    liters, amount: amt, price, full: isFull,
+    station: fStationEl.value.trim() || null,
+    estimated: !(touchedPrice || touchedLiters)
+  });
+  renderAll();
+  closeRec();
+  document.querySelector('.tab[data-target="page-home"]').click();
+});
+
+/* ---------- 油价 ---------- */
+function syncChips() {
+  document.querySelectorAll('#chips .chip').forEach(c => {
+    const g = c.dataset.g;
+    c.classList.toggle('on', g === curGrade);
+    c.querySelector('small').textContent = FUEL[g].toFixed(2);
+  });
+  document.querySelectorAll('.frow').forEach(r => {
+    const g = r.dataset.g;
+    r.classList.toggle('on', g === curGrade);
+    r.querySelector('small').textContent = g === curGrade ? '当前使用' : '切换为默认';
+  });
+}
+function syncSheetInputs() {
+  document.querySelectorAll('input[data-price]').forEach(i => {
+    i.value = FUEL[i.dataset.price].toFixed(2);
+  });
+}
+
+document.getElementById('chips').addEventListener('click', e => {
+  const btn = e.target.closest('.chip');
+  if (!btn) return;
+  curGrade = btn.dataset.g;
+  fPrice.value = FUEL[curGrade].toFixed(2);
+  touchedPrice = false; touchedLiters = false;
+  syncChips();
+  sync('price');
+});
+
+const mask = document.getElementById('mask');
+const sheet = document.getElementById('fuelSheet');
+const stationSheet = document.getElementById('stationSheet');
+const vehSheet = document.getElementById('vehSheet');
+
+const closeSheets = () => {
+  mask.classList.remove('on');
+  sheet.classList.remove('on');
+  stationSheet.classList.remove('on');
+  vehSheet.classList.remove('on');
+};
+const openSheet = () => { closeSheets(); mask.classList.add('on'); sheet.classList.add('on'); syncChips(); syncSheetInputs(); };
+
+document.getElementById('fuelLine').addEventListener('click', openSheet);
+mask.addEventListener('click', closeSheets);
+
+/* ---------- 加油站 ---------- */
+function renderStationList() {
+  const cnt = {};
+  vRecs().forEach(r => { if (r.station) cnt[r.station] = (cnt[r.station] || 0) + 1; });
+  const arr = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+  document.getElementById('stationList').innerHTML = arr.length
+    ? arr.map(([name, n]) => `<div class="sitem" data-name="${name}"><span class="sn">${name}</span><span class="sc">${n} 次</span></div>`).join('')
+    : '<div class="sitem"><span class="sc">还没有记录过加油站</span></div>';
+}
+
+const openStation = () => {
+  closeSheets();
+  renderStationList();
+  mask.classList.add('on');
+  stationSheet.classList.add('on');
+};
+
+fStationEl.addEventListener('click', () => { if (fStationEl.readOnly) openStation(); });
+document.getElementById('stationBtn').addEventListener('click', openStation);
+
+document.getElementById('stationList').addEventListener('click', e => {
+  const item = e.target.closest('.sitem');
+  if (!item || !item.dataset.name) return;
+  fStationEl.value = item.dataset.name;
+  fStationEl.readOnly = true;
+  fStationEl.classList.remove('editing');
+  closeSheets();
+});
+
+document.getElementById('stationOther').addEventListener('click', () => {
+  closeSheets();
+  fStationEl.readOnly = false;
+  fStationEl.classList.add('editing');
+  fStationEl.value = '';
+  setTimeout(() => fStationEl.focus(), 280);
+});
+
+/* ---------- 车辆切换 / 编辑 ---------- */
+/* 编辑态只影响下方表单，不动车辆数据；切车、关面板都要退回添加态，避免改错车 */
+let editingVeh = null;
+
+function paintVehForm() {
+  const v = editingVeh != null ? vehicles.find(x => x.id === editingVeh) : null;
+  document.getElementById('vFormTitle').textContent = v ? `编辑 · ${v.name}` : '添加车辆';
+  document.getElementById('vAddBtn').textContent = v ? '保存修改' : '＋ 添加车辆';
+  document.getElementById('vCancel').style.display = v ? '' : 'none';
+  document.getElementById('vName').value = v ? v.name : '';
+  document.getElementById('vPlate').value = v && v.plate !== '未设置车牌' ? v.plate : '';
+  document.getElementById('vTank').value = v && v.tank > 0 ? v.tank : '';
+  document.getElementById('vGrade').value = v ? v.fuelGrade : '92';
+}
+
+function renderVehList() {
+  document.getElementById('vehList').innerHTML = vehicles.map(v => {
+    const n = records.filter(r => r.veh === v.id).length;
+    return `<div class="vitem ${v.id === curVeh ? 'on' : ''}" data-v="${v.id}">
+      <div class="radio"></div>
+      <div class="vn">${v.name}<small>${v.plate} · ${v.fuelGrade}# · ${n} 条</small></div>
+      <label class="vt">油箱<input class="tin" data-tank="${v.id}" inputmode="decimal"
+        value="${v.tank > 0 ? v.tank : ''}" placeholder="未填"></label>
+      <button class="vedit" data-edit="${v.id}" aria-label="编辑 ${v.name}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 6.5l3 3"/>
+        </svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('carSwitch').addEventListener('click', () => {
+  closeSheets();
+  editingVeh = null;
+  paintVehForm();
+  renderVehList();
+  mask.classList.add('on');
+  vehSheet.classList.add('on');
+});
+
+function paintOvVeh() {
+  const v = curV();
+  document.getElementById('ovVeh').style.display = v ? '' : 'none';
+  if (v) document.getElementById('ovVehName').textContent = `${v.name} · ${v.plate}`;
+}
+
+document.getElementById('vehList').addEventListener('input', e => {
+  /* 改油箱容积：只重算首页，不重绘面板 —— 重绘会把输入焦点弄丢 */
+  const inp = e.target.closest('[data-tank]');
+  if (!inp) return;
+  const v = vehicles.find(x => x.id === +inp.dataset.tank);
+  if (!v) return;
+  const val = parseFloat(inp.value);
+  v.tank = isFinite(val) && val > 0 ? val : 0;
+  renderHome();
+});
+
+document.getElementById('vehList').addEventListener('click', e => {
+  const editBtn = e.target.closest('[data-edit]');
+  if (editBtn) {
+    /* 铅笔和整行是两件事：这行用来切车，铅笔用来改这辆车的信息 */
+    editingVeh = +editBtn.dataset.edit;
+    paintVehForm();
+    document.getElementById('vName').focus();
+    return;
+  }
+  const item = e.target.closest('.vitem');
+  if (!item || e.target.closest('input')) return;
+  const id = +item.dataset.v;
+  if (id === curVeh) { closeSheets(); return; }
+  curVeh = id;
+  curGrade = curV().fuelGrade; /* 默认标号跟着车走 */
+  closeSheets();
+  renderAll();
+  if (ov.classList.contains('open')) {
+    /* 换了车，里程表就是另一套数：旧输入必须清掉，不能拿 A 车的里程记到 B 车上 */
+    const recent = byDateDesc()[0] || null;
+    fOdo.value = ''; fAmount.value = ''; fLiters.value = '';
+    fPrice.value = ((recent && recent.price) || FUEL[curGrade]).toFixed(2);
+    fStationEl.value = (recent && recent.station) || '';
+    touchedPrice = false; touchedLiters = false;
+    litersAuto.style.display = 'none';
+    priceAuto.style.display = 'none';
+    syncChips();
+    const lo = maxOdo();
+    document.getElementById('odoSub').innerHTML = isFinite(lo) ? `上次 ${fmt(lo)} km` : '这辆车的第一条记录';
+    saveNote.textContent = '';
+    validate();
+  }
+});
+
+document.getElementById('ovVeh').addEventListener('click', () => {
+  closeSheets();
+  editingVeh = null;
+  paintVehForm();
+  renderVehList();
+  mask.classList.add('on');
+  vehSheet.classList.add('on');
+});
+
+document.getElementById('vAddBtn').addEventListener('click', () => {
+  const nameEl = document.getElementById('vName');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  const plate = document.getElementById('vPlate').value.trim() || '未设置车牌';
+  const tankIn = parseFloat(document.getElementById('vTank').value);
+  const tank = isFinite(tankIn) && tankIn > 0 ? tankIn : 0;
+  const gradeRaw = document.getElementById('vGrade').value.replace(/[^0-9]/g, '');
+  const grade = gradeRaw || '92';
+
+  if (editingVeh != null) {
+    /* 改的是车辆属性，已有记录挂在 id 上，不受影响 */
+    const v = vehicles.find(x => x.id === editingVeh);
+    if (v) {
+      v.name = name;
+      v.plate = plate;
+      v.tank = tank;
+      v.fuelGrade = grade;
+      if (v.id === curVeh) curGrade = grade;
+    }
+    editingVeh = null;
+    paintVehForm();
+    renderVehList();
+    renderAll();
+    return;
+  }
+
+  const id = Math.max(0, ...vehicles.map(v => v.id)) + 1;
+  vehicles.push({ id, name, plate, tank, fuelGrade: grade }); /* 油箱没填就留 0，别塞个 45 冒充用户填的 */
+  curVeh = id;
+  curGrade = grade;
+  paintVehForm();
+  closeSheets();
+  renderAll();
+});
+
+document.getElementById('vCancel').addEventListener('click', () => {
+  editingVeh = null;
+  paintVehForm();
+  renderVehList();
+});
+
+sheet.addEventListener('click', e => {
+  const row = e.target.closest('.frow');
+  if (row && !e.target.closest('input')) {
+    curGrade = row.dataset.g;
+    curV().fuelGrade = curGrade; /* 默认标号是车的属性，跟车保存 */
+    syncChips();
+    renderHome();
+    if (ov.classList.contains('open')) { fPrice.value = FUEL[curGrade].toFixed(2); sync('price'); }
+  }
+});
+
+sheet.querySelectorAll('input[data-price]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const v = parseFloat(inp.value);
+    if (!(v > 0)) return;
+    FUEL[inp.dataset.price] = v;
+    const chip = document.querySelector(`#chips .chip[data-g="${inp.dataset.price}"] small`);
+    if (chip) chip.textContent = v.toFixed(2);
+    if (inp.dataset.price === curGrade) {
+      document.getElementById('fuelLabel').textContent = `${curGrade}# ¥${v.toFixed(2)}`;
+      if (ov.classList.contains('open')) { fPrice.value = v.toFixed(2); sync('price'); }
+    }
+  });
+});
+
+/* ---------- 油价同步：只在点的时候查，不后台轮询 ---------- */
+const syncInfo = document.getElementById('syncInfo');
+const syncBtn = document.getElementById('syncBtn');
+const fmtSyncTime = s => {
+  const [day, hm] = s.split(' ');
+  const [, m, d] = day.split('-');
+  return `${+m}月${+d}日 ${hm}`;
+};
+syncInfo.innerHTML = `已同步 · ${fmtSyncTime(FUEL_META.syncedAt)}`;
+
+syncBtn.addEventListener('click', () => {
+  if (syncBtn.disabled) return;
+  syncBtn.disabled = true;
+  syncBtn.textContent = '同步中';
+  syncInfo.textContent = '正在查询省级挂牌价…';
+  setTimeout(() => {
+    /* 调价每 10 个工作日一次，未到窗口就是没变，不假装有更新 */
+    syncInfo.innerHTML = `价格未变 · 下次窗口 ${md(FUEL_META.nextWindow)}`;
+    syncBtn.textContent = '刷新';
+    syncBtn.disabled = false;
+  }, 900);
+});
+
+/* ---------- 定位带出加油站 ---------- */
+const geoRow = document.getElementById('geoRow');
+const geoText = document.getElementById('geoText');
+const geoBtn = document.getElementById('geoBtn');
+const NEAR_STATION = '延长壳牌 · 高新';
+const NEAR_DIST = '400 m';
+let geoState = 'idle'; /* idle → busy → found → used */
+
+function paintGeo() {
+  geoRow.classList.toggle('busy', geoState === 'busy');
+  geoBtn.disabled = geoState === 'busy';
+  if (geoState === 'idle') {
+    geoText.textContent = '记录时顺带带出附近的站';
+    geoBtn.textContent = '定位';
+  } else if (geoState === 'busy') {
+    geoText.textContent = '定位中…';
+  } else if (geoState === 'found') {
+    geoText.innerHTML = `<b>${NEAR_STATION}</b><em>${NEAR_DIST}</em>`;
+    geoBtn.textContent = '使用';
+  } else if (geoState === 'used') {
+    geoText.innerHTML = `<b>${NEAR_STATION}</b><em>已填入</em>`;
+    geoBtn.textContent = '重定';
+  }
+}
+
+function resetGeo() { geoState = 'idle'; paintGeo(); }
+
+function locate() {
+  geoState = 'busy';
+  paintGeo();
+  setTimeout(() => { geoState = 'found'; paintGeo(); }, 1000);
+}
+
+geoBtn.addEventListener('click', () => {
+  if (geoState === 'busy') return;
+  if (geoState === 'idle' || geoState === 'used') locate();
+  else if (geoState === 'found') {
+    fStationEl.value = NEAR_STATION;
+    fStationEl.readOnly = true;
+    fStationEl.classList.remove('editing');
+    geoState = 'used';
+    paintGeo();
+  }
+});
+
+/* ---------- CSV 导出 / 导入 ---------- */
+const CSV_HEAD = 'vehicle,vehicle_name,date,odometer,liters,amount,price,is_full,station,estimated,tank';
+
+const opMsg = document.getElementById('opMsg');
+let msgTimer = null;
+function showMsg(text, kind) {
+  opMsg.textContent = text;
+  opMsg.className = 'opmsg on ' + (kind || 'ok');
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { opMsg.className = 'opmsg'; }, 6000);
+}
+
+function buildCsv() {
+  const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const vehOf = id => vehicles.find(v => v.id === id) || {};
+  /* 导出全部车辆：车牌是归车依据，车名一并带上，换机恢复后名字不会丢 */
+  const rows = [...records]
+    .sort((a, b) => a.date.localeCompare(b.date) || a.odo - b.odo)
+    .map(r => [
+      vehOf(r.veh).plate || '', vehOf(r.veh).name || '', r.date, r.odo,
+      r.liters.toFixed(2), r.amount.toFixed(2), r.price.toFixed(2),
+      r.full ? 1 : 0, r.station || '', r.estimated ? 1 : 0,
+      vehOf(r.veh).tank > 0 ? vehOf(r.veh).tank : '' /* 油箱容积跟着文件走，否则导回来续航退回旧算法 */
+    ].map((v, i) => i === 8 ? q(v) : v).join(','));
+  return [CSV_HEAD, ...rows].join('\n');
+}
+
+/* 「更多操作」：导入导出是低频操作，收进右上角，别跟记录列表抢版面 */
+const moreBtn = document.getElementById('moreBtn');
+const moreMenu = document.getElementById('moreMenu');
+function closeMore() { moreMenu.classList.remove('on'); }
+moreBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  moreMenu.classList.toggle('on');
+});
+moreMenu.addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', closeMore);
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  closeMore();
+  const csv = '\ufeff' + buildCsv();
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fuel_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showMsg(`已导出全部 ${records.length} 条（含所有车辆）`, 'ok');
+});
+
+/* 引号内可含逗号；RFC 4180 的双引号转义 */
+function parseCsvLine(line) {
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else cur += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function importCsv(text) {
+  const lines = text.replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return { added: 0, skipped: 0, bad: 0 };
+  /* 三种表头都认：vehicle+vehicle_name（当前）、vehicle（上一版）、date（最早一版） */
+  const head = lines[0] || '';
+  const hasVehName = /^vehicle\s*,\s*vehicle_name\s*,/i.test(head);
+  const hasVeh = /^vehicle\s*,/i.test(head);
+  const start = hasVeh || /^date\s*,/i.test(head) ? 1 : 0;
+  const plateOf = id => (vehicles.find(v => v.id === id) || {}).plate || '';
+  const seen = new Set(records.map(r => `${plateOf(r.veh)}|${r.date}|${r.odo}`));
+  let nextId = Math.max(0, ...records.map(r => r.id)) + 1;
+  let added = 0, skipped = 0, bad = 0;
+  for (let i = start; i < lines.length; i++) {
+    const c = parseCsvLine(lines[i]).map(v => v.trim());
+    if (c.length < 5) { bad++; continue; }
+    let vplate, vname = '', date, odo, liters, amount, price, full, station, est, tankIn = 0;
+    if (hasVehName) {
+      [vplate, vname, date, odo, liters, amount, price, full, station, est, tankIn] = c;
+      tankIn = parseFloat(tankIn) || 0; /* 第 11 列是油箱容积，老文件没有这一列 */
+    } else if (hasVeh) {
+      [vplate, date, odo, liters, amount, price, full, station, est] = c;
+    } else {
+      [date, odo, liters, amount, price, full, station, est] = c;
+      vplate = undefined; /* 最早格式没有车辆列，归入当前车 */
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { bad++; continue; }
+    const o = parseInt(odo, 10);
+    if (!Number.isFinite(o) || o <= 0) { skipped++; continue; }
+    /* 旧格式归当前车；新格式按车牌找车，找不到就建一辆 */
+    let vid = curVeh;
+    if (vplate !== undefined) {
+      let veh = vehicles.find(v => v.plate === vplate);
+      if (!veh) {
+        veh = { id: Math.max(0, ...vehicles.map(v => v.id)) + 1, name: vname || vplate || '导入车辆', plate: vplate || '未设置车牌', tank: tankIn, fuelGrade: '92' };
+        vehicles.push(veh);
+      } else {
+        if (vname && veh.name === veh.plate) {
+          veh.name = vname; /* 之前从旧格式导入时名字退化成了车牌，这里补回来 */
+        }
+        /* 本地没填才补：填过就是用户设的，不能被一份旧备份改回去 */
+        if (!(veh.tank > 0) && tankIn > 0) veh.tank = tankIn;
+      }
+      vid = veh.id;
+    }
+    /* 去重键：有车辆列用车牌；旧格式归当前车，也用车牌算，避免重复导入 */
+    const key = `${vplate === undefined ? plateOf(curVeh) : vplate}|${date}|${o}`;
+    if (seen.has(key)) { skipped++; continue; }
+    seen.add(key);
+    records.push({
+      veh: vid, id: nextId++, date, odo: o,
+      liters: parseFloat(liters) || 0,
+      amount: parseFloat(amount) || 0,
+      price: parseFloat(price) || 0,
+      full: full !== '0' && !/^false$/i.test(full || ''),
+      station: station || null,
+      estimated: est === '1' || /^true$/i.test(est || '')
+    });
+    added++;
+  }
+  return { added, skipped, bad };
+}
+
+document.getElementById('importFile').addEventListener('change', e => {
+  closeMore();
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const r = importCsv(String(reader.result));
+    renderAll();
+    const parts = [];
+    if (r.added) parts.push(`导入 ${r.added} 条`);
+    if (r.skipped) parts.push(`跳过 ${r.skipped} 条已存在`);
+    if (r.bad) parts.push(`${r.bad} 行无法识别`);
+    if (r.added) {
+      const sus = records.filter(x => {
+        const c = calc[x.id];
+        return c && !c.anomaly && (c.l100 > 25 || c.l100 < 3);
+      }).length;
+      if (sus) parts.push(`${sus} 条区间油耗异常，建议核对里程`);
+    }
+    if (r.added) showMsg(parts.join('，'), 'ok');
+    else if (r.skipped || r.bad) showMsg('全部' + parts.join('，'), 'warn');
+    else showMsg('没有可导入的记录，确认是本 App 导出的 CSV', 'warn');
+  };
+  reader.readAsText(f, 'utf-8');
+});
+
+resetGeo();
+
+renderAll();
+paintVehForm();
+</script>
+</body>
+</html>

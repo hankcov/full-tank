@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 默认禁止明文，只对白名单域放行。白名单与 Net.kt 里的 allowed 集合必须一致 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">apis.map.qq.com</domain>
+        <domain includeSubdomains="true">api.open-meteo.com</domain>
+        <domain includeSubdomains="true">archive-api.open-meteo.com</domain>
+    </domain-config>
+</network-security-config>

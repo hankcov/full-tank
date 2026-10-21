@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>满箱 · 图标预览</title>
+<style>
+  :root {
+    --ink: #14181c;
+    --muted: #6b757d;
+    --line: #e6eaee;
+    --paper: #f7f8f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 15px/1.6 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    padding: 48px 24px 80px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin: 0 0 6px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 44px; }
+  h2 {
+    font-size: 12px; font-weight: 600; letter-spacing: .14em;
+    color: var(--muted); text-transform: uppercase;
+    margin: 44px 0 18px;
+  }
+  .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .panel {
+    border-radius: 18px; padding: 40px 20px; display: flex;
+    align-items: center; justify-content: center; min-height: 200px;
+  }
+  .panel.dark  { background: #0e1412; }
+  .panel.light { background: #ffffff; border: 1px solid var(--line); }
+  .panel.warm  { background: linear-gradient(140deg, #e8e3d9, #cfd6d2); }
+  .cap { text-align: center; color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+  .sizes { display: flex; align-items: flex-end; gap: 40px; padding: 34px 34px 28px; background: #fff; border: 1px solid var(--line); border-radius: 18px; }
+  .sizes figure { margin: 0; text-align: center; }
+  .sizes figcaption { color: var(--muted); font-size: 11px; margin-top: 14px; letter-spacing: .04em; }
+
+  .row { display: flex; gap: 14px; align-items: center; padding: 18px 20px; background: #fff; border: 1px solid var(--line); border-radius: 16px; }
+  .row + .row { margin-top: 10px; }
+  .row .nm { font-size: 16px; font-weight: 500; }
+  .row .meta { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .stroke { flex: 1; height: 1px; background: var(--line); margin: 0 4px; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>满箱</h1>
+  <p class="sub">深墨绿底 · 双弧油表 · 无油枪无油滴</p>
+
+  <h2>桌面效果</h2>
+  <div class="panels">
+    <div>
+      <div class="panel dark" id="p1"></div>
+      <div class="cap">深色桌面 · 圆形遮罩</div>
+    </div>
+    <div>
+      <div class="panel light" id="p2"></div>
+      <div class="cap">浅色桌面 · 圆角方形</div>
+    </div>
+    <div>
+      <div class="panel warm" id="p3"></div>
+      <div class="cap">暖色壁纸 · 圆形</div>
+    </div>
+  </div>
+
+  <h2>尺寸</h2>
+  <div class="sizes">
+    <figure><div id="s96"></div><figcaption>96 dp</figcaption></figure>
+    <figure><div id="s72"></div><figcaption>72 dp</figcaption></figure>
+    <figure><div id="s48"></div><figcaption>48 dp</figcaption></figure>
+    <figure><div id="s32"></div><figcaption>32 dp</figcaption></figure>
+    <figure><div id="s24"></div><figcaption>24 dp 通知栏</figcaption></figure>
+  </div>
+
+  <h2>桌面图标文字</h2>
+  <div class="row">
+    <div id="appicon"></div>
+    <div class="nm">满箱</div>
+    <div class="stroke"></div>
+    <div class="meta">26.4 mm</div>
+  </div>
+  <div class="row" style="opacity:.42">
+    <div id="appicon2" style="filter:grayscale(1)"></div>
+    <div class="nm">油耗</div>
+    <div class="stroke"></div>
+    <div class="meta">改名前</div>
+  </div>
+  <p class="note">矮处的旧图标仅作对照：饱和绿 + 油枪，在桌面上比新图标亮一截。</p>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 自适应图标：108 画布，内容在中心 66 安全区内 -->
+    <g id="glyph">
+      <rect width="108" height="108" fill="#16211D"/>
+      <path d="M41,76.52 A26,26 0 1 1 67,76.52" fill="none" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="3" stroke-linecap="round"/>
+      <path d="M41,76.52 A26,26 0 1 1 76.52,41" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <clipPath id="circle"><circle cx="54" cy="54" r="36"/></clipPath>
+    <clipPath id="squircle"><rect x="18" y="18" width="72" height="72" rx="20"/></clipPath>
+  </defs>
+</svg>
+
+<script>
+  const GLYPH = `
+    <rect width="108" height="108" fill="#16211D"/>
+    <path d="M39,79.98 A30,30 0 1 1 69,79.98" fill="none" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M39,79.98 A30,30 0 1 1 79.98,39" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>`;
+
+  function icon(size, mask) {
+    const clip = mask === 'circle' ? 'circle' : mask === 'squircle' ? 'squircle' : null;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 108 108">
+      ${clip ? `<g clip-path="url(#${clip})">${GLYPH}</g>` : GLYPH}
+    </svg>`;
+  }
+
+  p1.innerHTML = icon(128, 'circle');
+  p2.innerHTML = icon(128, 'squircle');
+  p3.innerHTML = icon(128, 'circle');
+
+  s96.innerHTML = icon(96, 'circle');
+  s72.innerHTML = icon(72, 'circle');
+  s48.innerHTML = icon(48, 'circle');
+  s32.innerHTML = icon(32, 'circle');
+  s24.innerHTML = icon(24, 'circle');
+
+  appicon.innerHTML  = icon(52, 'squircle');
+  appicon2.innerHTML = icon(52, 'squircle');
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# 只提交源码、文档和数据样本；以下全部忽略
+
+# ---- 构建产物 ----
+build/
+.gradle/
+.kotlin/
+captures/
+*.apk
+*.aab
+*.hprof
+*.class
+*.aar
+
+# ---- 本机配置 / IDE ----
+local.properties
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# ---- 依赖 ----
+node_modules/
+
+# ---- 工具缓存 ----
+*.log
+.cxx/
+.externalNativeBuild/
+
+# ---- 工作区数据（本地记忆、会话痕迹，不入库）----
+.workbuddy/

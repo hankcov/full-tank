@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">满箱</string>
+
+    <!-- 首页 -->
+    <string name="home_title">满箱</string>
+    <string name="home_current">当前油耗</string>
+    <string name="home_no_segment">还没有可信的油耗区间</string>
+    <string name="home_last_refuel">上次加油</string>
+    <string name="home_total_distance">累计行驶</string>
+    <string name="home_total_cost">累计油费</string>
+    <string name="home_avg_consumption">累计平均</string>
+    <string name="home_range">续航估算</string>
+    <string name="home_range_empty">─</string>
+    <string name="home_trend">趋势</string>
+    <string name="home_empty_vehicle">这辆车还没有记录</string>
+    <string name="home_add_vehicle">添加车辆</string>
+    <string name="home_record">记一笔</string>
+
+    <!-- 录入 -->
+    <string name="record_title">记一笔</string>
+    <string name="record_vehicle">记到</string>
+    <string name="record_odometer">总里程 (km)</string>
+    <string name="record_amount">金额 (元)</string>
+    <string name="record_liters">升数 (L)</string>
+    <string name="record_price">单价 (元/L)</string>
+    <string name="record_full">加满</string>
+    <string name="record_station">加油站</string>
+    <string name="record_locate">获取当前位置</string>
+    <string name="record_save">保存</string>
+    <string name="record_estimated">估</string>
+    <string name="record_price_stale">油价为 %1$s 同步</string>
+    <string name="record_over_tank">加了 %1$.1f L，超过油箱容量 %2$.0f L</string>
+    <string name="record_price_mismatch">金额与升数换算的单价比填写值差 %1$d%%</string>
+
+    <!-- 历史 -->
+    <string name="history_title">历史</string>
+    <string name="history_empty">还没有记录</string>
+    <string name="history_anomaly">异常 · 核对里程</string>
+    <string name="history_export">导出 CSV</string>
+    <string name="history_import">导入 CSV</string>
+    <string name="history_import_done">导入 %1$d 条，跳过 %2$d 条重复</string>
+    <string name="history_import_failed">无法识别的文件，数据未改动</string>
+
+    <!-- 车辆 -->
+    <string name="vehicle_switch">切换车辆</string>
+    <string name="vehicle_add">添加车辆</string>
+    <string name="vehicle_name">名称</string>
+    <string name="vehicle_plate">车牌（选填）</string>
+    <string name="vehicle_tank">油箱容量 (L)</string>
+    <string name="vehicle_grade">默认标号</string>
+
+    <!-- 通用 -->
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_confirm">确定</string>
+    <string name="placeholder_dash">─</string>
+</resources>
