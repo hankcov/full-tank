@@ -1,6 +1,6 @@
-# carassistant · 油耗助手
+# 满箱 · full-tank
 
-个人自用的安卓油耗记账 App。用来替换广告过多的小熊油耗。
+个人自用的安卓加油记账 App（full-tank fuel log），按满箱法算油耗。用来替换广告过多的小熊油耗。
 
 - 需求：`docs/REQUIREMENTS.md`
 - 技术方案与判据：`docs/PLAN.md`
@@ -8,7 +8,7 @@
 
 ## 现状
 
-Android 工程已可编译出可安装的 APK（`android/app/build/outputs/apk/debug/app-debug.apk`）。
+Android 工程可编译出可安装的 APK（包名 `app.manxiang`，release 12 MB）。
 
 已经落地：
 
@@ -16,7 +16,8 @@ Android 工程已可编译出可安装的 APK（`android/app/build/outputs/apk/d
 |---|---|
 | 满箱法油耗算法 + 异常区间隔离 | 完成，单测覆盖判据 A1–A9 |
 | 首页指标（当前油耗 / 累计 / 续航） | 完成，单测覆盖 B1–B5 |
-| 多车：新建 / 切换 / 按车隔离 | 完成 |
+| 续航双口径（油箱容积优先，缺省退上次加油量） | 完成 |
+| 多车：新建 / 切换 / 编辑 / 按车隔离 | 完成 |
 | 录入页（金额 / 升数 / 单价 三者联动） | 完成，含「估」标记 |
 | 历史列表 + 异常行标注 + 删除 | 完成 |
 | CSV 导出 / 导入（按车牌归车、去重） | 完成，单测覆盖 G1–G6 |
@@ -32,14 +33,15 @@ Android 工程已可编译出可安装的 APK（`android/app/build/outputs/apk/d
 ```bash
 cd android
 export JAVA_HOME=/d/android-dev/jdk-21.0.2
-./gradlew assembleDebug          # 出 APK
-./gradlew testDebugUnitTest      # 跑 35 个单元测试
+./gradlew assembleRelease         # 出 APK（app/build/outputs/apk/release/）
+./gradlew assembleDebug           # debug 版
+./gradlew testDebugUnitTest       # 跑 49 个单元测试
 ```
 
 装到手机（开 USB 调试后）：
 
 ```bash
-/d/android-dev/sdk/platform-tools/adb.exe install -r app/build/outputs/apk/debug/app-debug.apk
+/d/android-dev/sdk/platform-tools/adb.exe install -r app/build/outputs/apk/release/app-release.apk
 ```
 
 `local.properties` 里的 `sdk.dir` 指向本机 SDK，不要提交。
