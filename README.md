@@ -1,6 +1,6 @@
 # 满箱 · full-tank
 
-个人自用的安卓加油记账 App（full-tank fuel log），按满箱法算油耗。用来替换广告过多的小熊油耗。
+个人自用的安卓加油记账 App（full-tank fuel log），按满箱法算油耗。数据只存本机，无账号、无广告、无统计。
 
 - 需求：`docs/REQUIREMENTS.md`
 - 技术方案与判据：`docs/PLAN.md`
