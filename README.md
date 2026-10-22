@@ -6,6 +6,21 @@
 - 技术方案与判据：`docs/PLAN.md`
 - 交互原型：`demo/prototype.html`（浏览器直接打开）
 
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/home.png" width="250" alt="首页"><br>首页</td>
+    <td align="center"><img src="docs/img/record.png" width="250" alt="记一笔"><br>记一笔</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/history.png" width="250" alt="加油记录"><br>加油记录 · 更多操作收起导入导出</td>
+    <td align="center"><img src="docs/img/vehicles.png" width="250" alt="车辆管理"><br>车辆管理 · 可编辑</td>
+  </tr>
+</table>
+
+截图由 `tools/shots.py` 用 Playwright 从交互原型真实点击生成，原型改动后重跑即可更新。
+
 ## 现状
 
 Android 工程可编译出可安装的 APK（包名 `app.manxiang`，release 12 MB）。
